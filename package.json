@@ -1,0 +1,15 @@
+{
+  "name": "firebaseauthsample",
+  "version": "1.0.0",
+  "description": "this application show usages of facebook graph api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "hitesh lalwani",
+  "license": "ISC",
+  "dependencies": {
+    "express": "4.15.2",
+    "json-stringify": "^1.0.0"
+  }
+}
