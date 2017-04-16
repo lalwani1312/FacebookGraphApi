@@ -1,6 +1,6 @@
 var express           =     require('express')
   , https             =     require('https')
-  , Config            =     require('./configuration/config.js')
+  , config            =     require('./configuration/config.js')
   , app               =     express();
 
 app.get('/', function(req, res) {
@@ -12,8 +12,8 @@ app.get('/', function(req, res) {
 // });
 //
 
-app.get('/auth/facebook', function(req, res) {
-  console.log('/dialog/oauth called 1');
+app.get('/getCode', function(req, res) {
+  console.log('/getCode called');
 
   //Options to be used by request
   var options = {
@@ -21,10 +21,10 @@ app.get('/auth/facebook', function(req, res) {
     port: 443,
     path: '/v2.8/dialog/oauth?'
           + 'client_id=' + config.facebook_api_key
-          + '&redirect_uri=http://localhost:3000/auth/facebook/callback'
+          + '&redirect_uri=http://localhost:3000/auth/getAccessToken'
   };
 
-  console.log('oAuth code request: ' +JSON.stringify(options));
+  //console.log('oAuth code request: ' +JSON.stringify(options));
   // var oAuthDialogRequest = https.request(options,  function(response) {
   //   console.log('oAuthDialogRequest callback');
   //   var body;
@@ -47,22 +47,26 @@ app.get('/auth/facebook', function(req, res) {
 
 //
 //
-app.get('/auth/facebook/callback', function(req, res) {
+app.get('/getAccessToken', function(req, res) {
   // Options to be used by request
   var options = {
     host: 'graph.facebook.com',
     port: 443,
     path: '/v2.8/oauth/access_token?'
           + 'client_id=' + config.facebook_api_key
-          + '&redirect_uri=http://localhost:3000/auth/facebook/callback'
+          + '&redirect_uri=http://localhost:3000/accessTokenReceived'
           + '&client_secret=' + config.facebook_api_secret
-          + '&code=' + req.body.code,
+          + '&code=' + req.query.code,
     method: 'GET'
   };
 
   console.log('graph request: ' +JSON.stringify(options));
-  var tokenExchangeRequest = https.request(options, accessTokenCallback);
+  var tokenExchangeRequest = https.request(options, accessTokenCallback, meRequest);
   tokenExchangeRequest.end();
+});
+
+app.get('/accessTokenReceived', function(req, res) {
+  res.json(req.body);
 });
 
 // Callback function is used to deal with access token response
@@ -75,11 +79,16 @@ var accessTokenCallback = function(response){
    response.on('end', function() {
       var dataString = JSON.stringify(body);
       console.log(dataString);
+	  next();
    });
 
    response.on('error', function(e) {
       console.error(e);
    });
+}
+
+var meRequest = function() {
+	  
 }
 //
 // app.get('/logout', function(req, res){
@@ -93,4 +102,7 @@ var accessTokenCallback = function(response){
 //   res.redirect('/login')
 // }
 
-app.listen(8080);
+app.set('port', /*process.env.PORT ||*/ 3000);
+app.listen(app.get('port'), /*'0.0.0.0', 511,*/ function(err) {
+    console.log('server started');
+});
